@@ -1,0 +1,26 @@
+# Binaries and build output
+dist/
+build/
+*.bin
+*.exe
+
+# Go test and cache
+*.test
+*.out
+
+# Environment and IDE
+.env
+config.yml
+.idea/
+.vscode/
+*.swp
+*~
+
+# Next.js & Fumadocs
+node_modules/
+.next/
+.source/
+website/node_modules/
+website/.next/
+website/.source/
+.vercel

@@ -1,0 +1,105 @@
+---
+title: System Architecture & Android Internals
+description: Low-level engineering deep dive into AAPT2 overriding, memory auto-tuning, and Android bionic runtime constraints.
+---
+
+# System Architecture & Android Internals
+
+`tadev` bridges standard desktop Linux build tools with the Android Bionic C library and Android kernel execution model. This document details the technical hurdles encountered when compiling Android apps on Android, and how `tadev` solves them.
+
+---
+
+## 1. The AAPT2 Problem: Overriding x86_64 Binaries
+
+Android Asset Packaging Tool 2 (`aapt2`) compiles and packages an app's resources (XML layouts, drawables, assets).
+
+### The Failure Mode
+By default, the Android Gradle Plugin downloads pre-packaged AAPT2 binaries bundled inside Google Maven JAR archives (`com.android.tools.build:aapt2:<version>`). These Maven archives contain binaries compiled strictly for desktop architectures:
+- `x86_64` Linux
+- `x86_64` macOS / Apple Silicon
+- `x86_64` Windows
+
+When Gradle executes this binary inside ARM64 Termux, the Linux kernel aborts execution:
+```
+java.io.IOException: Cannot run program "aapt2": error=8, Exec format error
+```
+
+### The `tadev` Solution
+1. `tadev` installs the native ARM64 `aapt2` package compiled directly against Termux's environment.
+2. It configures the global Gradle properties file (`~/.gradle/gradle.properties`) with:
+   ```properties
+   android.aapt2FromMaven=false
+   ```
+3. When `android.aapt2FromMaven=false` is set, the Android Gradle Plugin falls back to locating `aapt2` on the system `PATH`.
+4. `tadev` ensures `$PREFIX/bin` contains the native executable, resulting in seamless resource compilation at full native hardware speeds.
+
+---
+
+## 2. Dynamic Memory Auto-Tuning & LMK Mitigation
+
+Android devices do not manage memory like traditional Linux servers. When free memory drops below critical watermarks, the Android kernel's Low Memory Killer (LMK) aggressively sends `SIGKILL` (`kill -9`) to large background processes.
+
+Standard Gradle default configurations frequently attempt to allocate large heaps (often 4GB+ with parallel worker threads). Under Android, this causes the Gradle daemon to be killed mid-compilation:
+```
+Process 'Gradle Daemon' finished with non-zero exit value 137
+```
+
+### The `tadev` Solution
+`tadev` inspects `/proc/meminfo` at setup and runtime, dynamically calculating safe, balanced heap boundaries:
+
+- Low RAM (under 3.8 GB): Configured `-Xmx1024m`, Max Metaspace `384m`, Garbage Collector `-XX:+UseG1GC`
+- Mid-Range RAM (3.8 GB to 7.5 GB): Configured `-Xmx2048m`, Max Metaspace `512m`, Garbage Collector `-XX:+UseG1GC`
+- High-End RAM (7.5 GB and above): Configured `-Xmx3072m`, Max Metaspace `768m`, Garbage Collector `-XX:+UseG1GC`
+
+These settings are written to `~/.gradle/gradle.properties` (`org.gradle.jvmargs`) and exported via shell `JAVA_OPTS`, ensuring that compilation finishes smoothly without triggering LMK termination.
+
+---
+
+## 3. Shebang Patching Engine for Google SDK Tools
+
+Official Google Android Command-Line Tools (`sdkmanager`, `avdmanager`) ship with standard desktop Linux shebang lines:
+```bash
+#!/bin/bash
+```
+
+On Android, there is no `/bin` directory or `/bin/bash` in root filesystem space. Executing `sdkmanager` without modification results in:
+```
+No such file or directory
+```
+
+### The `tadev` Solution
+During command-line tools installation, `tadev` traverses the `bin/` directory and applies `termux-fix-shebang`, rewriting headers to target Termux's environment:
+```bash
+#!/data/data/com.termux/files/usr/bin/bash
+```
+Additionally, `tadev` installs a global `gradlew` wrapper script at `$PREFIX/bin/gradlew` that dynamically resolves whether you are inside a project with a local wrapper or running globally, ensuring correct JVM and AAPT2 path exports in every build context.
+
+---
+
+## 4. Android Storage Constraints & Security Model
+
+Starting with Android 10 (API 29), Google implemented strict storage isolation and mounted shared storage (`/sdcard`, `/storage/emulated/0`) with the `noexec` flag.
+
+As a result:
+- No binary or script stored under `/sdcard` can be executed directly.
+- Gradle daemons and Java compilers cannot execute native binaries stored in shared storage.
+
+`tadev` adheres strictly to Android's security model by storing the entire Android SDK, platform tools, and build cache in Termux's private data directory:
+```
+$HOME/.android/sdk   # Path: /data/data/com.termux/files/home/.android/sdk
+```
+This guarantees full execution permissions (`rwx`) and avoids Android SELinux and scoped storage blocks.
+
+---
+
+## 5. Native Non-Blocking Browser Launcher (Zero Termux:API)
+
+Opening browser URLs on mobile devices typically requires the `termux-api` package and `com.termux.api` Android application.
+
+To keep `tadev` 100% self-contained with zero external dependencies:
+1. `tadev` utilizes native Android Activity Manager intents:
+   ```bash
+   am start --user 0 -a android.intent.action.VIEW -d "<url>"
+   ```
+2. Falls back to base Termux bootstrap utility `termux-open-url`.
+3. Dispatches the command asynchronously in a detached process, ensuring that the interactive TUI menu never freezes while the user browser opens in the foreground.

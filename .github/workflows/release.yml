@@ -1,0 +1,109 @@
+name: "Release Multi-Arch Binaries"
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag name (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: "Build Binary (${{ matrix.binary }})"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: arm64
+            binary: tadev-android-arm64
+          - goos: linux
+            goarch: arm
+            binary: tadev-android-arm
+          - goos: linux
+            goarch: amd64
+            binary: tadev-android-amd64
+          - goos: linux
+            goarch: 386
+            binary: tadev-android-386
+
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Set up Go 1.24"
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: "Compile Binary (${{ matrix.binary }})"
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p build
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ]; then
+            TAG_NAME="${{ inputs.tag }}"
+          fi
+          go build -ldflags="-s -w -X 'main.Version=${TAG_NAME}' -X 'main.Author=Rugved Danej'" -o build/${{ matrix.binary }} main.go
+          chmod +x build/${{ matrix.binary }}
+          cd build
+          sha256sum ${{ matrix.binary }} > ${{ matrix.binary }}.sha256
+
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary }}
+          path: |
+            build/${{ matrix.binary }}
+            build/${{ matrix.binary }}.sha256
+          retention-days: 1
+
+  publish-assets:
+    name: "Publish / Update Release Assets"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Download Built Binaries"
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: "Update Release Assets In-Place"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ]; then
+            TAG_NAME="${{ inputs.tag }}"
+          fi
+
+          echo "Target tag: $TAG_NAME"
+          ls -la release-assets
+
+          # Create release only if it doesn't already exist (never delete existing release)
+          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Creating release $TAG_NAME..."
+            gh release create "$TAG_NAME" --title "$TAG_NAME" --generate-notes
+          else
+            echo "Release $TAG_NAME already exists. Keeping release and updating assets only."
+          fi
+
+          # Always upload / overwrite assets in-place using --clobber
+          echo "Uploading/updating assets with --clobber..."
+          gh release upload "$TAG_NAME" release-assets/* --clobber
+          echo "Assets updated successfully."

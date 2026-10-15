@@ -1,0 +1,51 @@
+# ==============================================================================
+#  tadev - Termux Android Development Engine Configuration (Example)
+#  Author: Rugved Danej (@rugved-danej)
+#  Repository: https://github.com/rugved-danej/termux-android-development
+# ==============================================================================
+
+version: "1.0.0"
+author: "Rugved Danej"
+repository: "https://github.com/rugved-danej/termux-android-development"
+
+# Android SDK Environment Configuration
+android:
+  sdk_root: "~/.android/sdk"
+  cmdline_tools:
+    auto_detect_latest: true
+    primary_repo_xml: "https://dl.google.com/android/repository/repository2-3.xml"
+    fallback_repo_xml: "https://dl.google.com/android/repository/repository2-1.xml"
+    fallback_build: "15641748"
+  platforms:
+    - "android-36"
+    - "android-35"
+  build_tools:
+    - "36.0.0"
+  aapt2:
+    native_override: true
+    binary_path: "/data/data/com.termux/files/usr/bin/aapt2"
+
+# OpenJDK & Java Toolchain Settings
+java:
+  profile: "25+21" # Options: "25+21", "21", "26+21", "26", "17", "25+17"
+  default_version: "25"
+  default_path: "/data/data/com.termux/files/usr/lib/jvm/java-25-openjdk"
+  toolchain_paths:
+    - "/data/data/com.termux/files/usr/lib/jvm/java-25-openjdk"
+    - "/data/data/com.termux/files/usr/lib/jvm/java-21-openjdk"
+  jvm_args: "-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC"
+
+# Terminal UI & Animation Preferences
+ui:
+  animations_enabled: true
+  spinner_style: "braille"
+  spinner_interval_ms: 75
+  show_elapsed_timer: true
+  color_theme: "cyberpunk-cyan"
+  show_banner: false
+
+# Update & Health-Check Automation
+updates:
+  check_frequency_days: 7
+  auto_check_in_shell: true
+  quiet_mode: false

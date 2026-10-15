@@ -1,0 +1,135 @@
+---
+title: Troubleshooting & FAQ
+description: Common compilation errors, memory issues, Android security constraints, and their automated resolutions.
+---
+
+# Troubleshooting & FAQ
+
+This guide provides direct, actionable solutions for the most common issues encountered when building Android apps natively inside Termux.
+
+---
+
+## 1. Unsupported Class File Major Version
+
+### Symptoms
+During `./gradlew assembleDebug` or annotation processing, the build fails with:
+```
+Unsupported class file major version 69
+```
+or similar class file major version incompatibility errors.
+
+### Cause
+The active Java runtime used to launch Gradle is newer than the bytecode version supported by the specific Android Gradle Plugin (AGP) version pinned in your project.
+
+### Solution
+Switch to the recommended OpenJDK 21 LTS solo profile or a combination profile:
+```bash
+tadev java switch 21
+```
+Or for legacy projects:
+```bash
+tadev java switch 17
+```
+
+---
+
+## 2. Cannot Run Program "aapt2": Exec Format Error
+
+### Symptoms
+AAPT2 compilation crashes immediately:
+```
+java.io.IOException: Cannot run program ".../aapt2": error=8, Exec format error
+```
+
+### Cause
+Gradle attempted to execute the pre-built desktop `x86_64` binary bundled inside Google's Maven repository rather than Termux's native ARM64 binary.
+
+### Solution
+1. Verify that `~/.gradle/gradle.properties` contains:
+   ```properties
+   android.aapt2FromMaven=false
+   ```
+2. If missing or altered, re-run `tadev setup` or run:
+   ```bash
+   echo "android.aapt2FromMaven=false" >> ~/.gradle/gradle.properties
+   ```
+3. Verify that native AAPT2 is installed:
+   ```bash
+   pkg install aapt2
+   ```
+
+---
+
+## 3. Gradle Daemon Terminated / Exit Code 137
+
+### Symptoms
+During DEX generation or Kotlin compilation, the build abruptly stops:
+```
+Process 'Gradle Daemon' finished with non-zero exit value 137
+```
+
+### Cause
+Exit value 137 corresponds to `128 + 9` (`SIGKILL`). The Android kernel's Low Memory Killer (LMK) forcibly killed the Gradle daemon because heap allocation exceeded available physical device RAM.
+
+### Solution
+1. Lower the Gradle maximum heap size in `~/.gradle/gradle.properties`:
+   ```properties
+   org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC
+   ```
+2. Disable parallel execution and worker daemons in `~/.gradle/gradle.properties`:
+   ```properties
+   org.gradle.parallel=false
+   org.gradle.workers.max=2
+   ```
+3. Reclaim device RAM by closing background apps on your Android phone before compiling.
+4. Clean temporary build caches:
+   ```bash
+   tadev clean gradle
+   ```
+
+---
+
+## 4. Permission Denied on External Storage (`/sdcard`)
+
+### Symptoms
+Cloning or building projects located under `/sdcard` or `/storage/emulated/0` fails with permission or execution errors.
+
+### Cause
+Android mounts shared storage with `noexec`, prohibiting binaries or scripts from executing.
+
+### Solution
+Always clone and compile projects inside Termux's internal home directory:
+```bash
+cd ~
+pwd  # Should output: /data/data/com.termux/files/home
+```
+
+---
+
+## 5. SDK Tools Crash: `/bin/bash: No such file or directory`
+
+### Symptoms
+Invoking `sdkmanager` or `avdmanager` directly produces:
+```
+No such file or directory
+```
+
+### Cause
+The shell script uses desktop Linux `#!/bin/bash` in its shebang line, which does not exist under Android's Bionic environment.
+
+### Solution
+Run `termux-fix-shebang` on the SDK command-line tools directory:
+```bash
+termux-fix-shebang ~/.android/sdk/cmdline-tools/latest/bin/*
+```
+Or run `tadev setup`, which applies this fix automatically.
+
+---
+
+## 6. Running Diagnostic Health Check
+
+Whenever you encounter unexpected build behavior, run:
+```bash
+tadev doctor
+```
+`tadev doctor` inspects your architecture, Java runtime, compiler, AAPT2 override, and shell configuration, providing specific remediation instructions for each detected anomaly.

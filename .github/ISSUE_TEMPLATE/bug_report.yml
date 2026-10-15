@@ -1,0 +1,105 @@
+name: "Bug Report"
+description: "File a detailed bug report for tadev, SDK components, or build failures"
+title: "[BUG]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue with **tadev**!
+        Developed by **Rugved Danej** ([@rugved-danej](https://github.com/rugved-danej)).
+        Please provide as much context as possible to help reproduce and fix the problem.
+
+  - type: dropdown
+    id: arch
+    attributes:
+      label: Device Architecture
+      description: What is your device CPU architecture?
+      options:
+        - "aarch64 / arm64 (Recommended)"
+        - "armv7l / armv8l (32-bit ARM)"
+        - "x86_64"
+        - "i686"
+    validations:
+      required: true
+
+  - type: input
+    id: android_version
+    attributes:
+      label: Android OS Version & ROM
+      description: What Android version and ROM are you running?
+      placeholder: "e.g., Android 14 (LineageOS 21), Android 15 (Stock Pixel)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: termux_source
+    attributes:
+      label: Termux Installation Source
+      description: Where did you install Termux from?
+      options:
+        - "F-Droid (Recommended)"
+        - "GitHub Releases"
+        - "Google Play Store (Deprecated & Unsupported)"
+    validations:
+      required: true
+
+  - type: input
+    id: tadev_version
+    attributes:
+      label: tadev CLI Version
+      description: Run 'tadev version' and paste the version string
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      description: A clear and concise description of the bug or unexpected behavior.
+      placeholder: "What happened when running tadev?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Run 'tadev install'
+        2. cd to my project directory
+        3. Run 'gradlew assembleDebug'
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor_output
+    attributes:
+      label: 'tadev doctor' Diagnostic Output
+      description: Paste the output of running 'tadev doctor' in Termux
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: terminal_logs
+    attributes:
+      label: Terminal Logs & Error Trace
+      description: Paste any command output, Gradle error traces, or crash logs
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Troubleshooting Checklist
+      options:
+        - label: "I have run `tadev doctor` to verify environment diagnostics."
+          required: true
+        - label: "I have tested whether `tadev update` resolves the problem."
+          required: false
+        - label: "I searched existing issues to ensure this is not a duplicate."
+          required: true

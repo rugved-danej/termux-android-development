@@ -1,0 +1,106 @@
+---
+title: Quickstart
+description: Get your Termux Android development workstation up and running in minutes.
+---
+
+# Quickstart Guide
+
+This guide walks you through installing `tadev`, setting up the complete Android build environment, and compiling your first APK natively inside Termux.
+
+---
+
+## 1. Prerequisites
+
+Before installing, ensure your environment meets the following baseline requirements:
+
+- Termux App: Installed from F-Droid or GitHub Releases (do not use Google Play versions as they are deprecated and unmaintained).
+- Architecture: ARM64 (`aarch64`), ARM (`armv7l`), or x86_64.
+- Storage: At least 3.5 GB of free internal device storage.
+- RAM: Minimum 3 GB physical device RAM (4 GB+ strongly recommended for fast DEX and AAPT2 passes).
+- Network: Active Internet connection to download Android SDK platforms and Command-Line Tools.
+
+---
+
+## 2. One-Line Installation
+
+Launch Termux and run the following automated installer script:
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/rugved-danej/termux-android-development/main/install.sh)
+```
+
+### What the Installer Does:
+1. Validates that the execution environment is Termux on Android.
+2. Identifies your device CPU architecture (`aarch64`, `armv7l`, `x86_64`, `i686`).
+3. Installs the standalone `tadev` binary into `$PREFIX/bin/tadev`.
+4. Creates a convenient symlink `$PREFIX/bin/termux-android-dev`.
+5. Grants full execution permissions.
+
+---
+
+## 3. Initial Environment Setup
+
+After the installer finishes, run:
+
+```bash
+tadev install
+```
+
+(Alternatively, just type `tadev` to open the interactive dashboard and select item `1`).
+
+### What Happens During Setup:
+1. Hardware Detection: Analyzes CPU architecture, memory metrics via `/proc/meminfo`, and sets optimal Gradle heap limits.
+2. Java Profile Selection: Prompts you to pick your preferred OpenJDK runtime (defaults to `[21]` Recommended).
+3. Termux Native Packages: Automatically installs `aapt2`, `gradle`, `apksigner`, `d8`, `git`, `curl`, and `unzip` via Termux's package manager.
+4. Android Command-Line Tools: Downloads and extracts the latest official Google Command-Line Tools directly into `~/.android/sdk/cmdline-tools/latest`.
+5. SDK Platforms & Build Tools: Automatically accepts all Android SDK licenses headlessly, then installs Android platform API 36, API 35, and build-tools 36.0.0.
+6. AAPT2 Override Configuration: Injects `android.aapt2FromMaven=false` into `~/.gradle/gradle.properties` along with JVM memory flags and toolchain discovery paths.
+7. Shell Integration: Updates `~/.zshrc` and `~/.bashrc` with `ANDROID_HOME`, `JAVA_HOME`, and `PATH` exports, and installs the global `gradlew` wrapper launcher.
+
+---
+
+## 4. Reload Shell & Verify Setup
+
+Apply the new environment variables to your active shell session:
+
+```bash
+source ~/.zshrc    # If using Zsh
+# or
+source ~/.bashrc   # If using Bash
+```
+
+### Run Health Diagnostics
+Verify that all tools, paths, and binaries are correctly operating:
+
+```bash
+tadev doctor
+```
+
+A healthy diagnostic report will display green checkmarks for:
+- Operating System & Device Class
+- Java Runtime (`java -version`)
+- Java Compiler (`javac -version`)
+- Android AAPT2 native binary (`aapt2 version`)
+- Android apksigner tool
+- Android SDK Root & command-line tools
+- Gradle build properties (`~/.gradle/gradle.properties`)
+
+---
+
+## 5. Compiling Your First Android App
+
+Clone or navigate to any Android Gradle project inside your Termux home directory:
+
+```bash
+cd ~
+git clone https://github.com/android/architecture-samples.git my-app
+cd my-app
+```
+
+Compile the debug APK:
+
+```bash
+gradlew assembleDebug
+```
+
+> Storage Tip: Always keep your Android project source code inside Termux internal storage (`~/` or `/data/data/com.termux/files/home`). Compiling projects stored on `/sdcard` will fail due to Android `noexec` permission restrictions.

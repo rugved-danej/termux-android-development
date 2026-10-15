@@ -1,0 +1,53 @@
+name: "Feature Request"
+description: "Suggest a new feature, platform version, or toolchain integration for tadev"
+title: "[FEATURE]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve **tadev**!
+        Project maintained and developed by **Rugved Danej** ([@rugved-danej](https://github.com/rugved-danej)).
+
+  - type: textarea
+    id: problem_statement
+    attributes:
+      label: Problem or Motivation
+      description: Is your feature request related to a problem or missing workflow?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution / Feature
+      description: Describe your proposed solution and how it should work in tadev.
+      placeholder: "Add support for automated Android NDK toolchain configuration..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: cli_ux
+    attributes:
+      label: CLI UX / Command Interface (Optional)
+      description: If this involves a new command or flag, describe how it should be invoked.
+      placeholder: "tadev ndk install r27c"
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions, scripts, or workarounds you've considered.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: "I am interested in submitting a Pull Request for this feature."
+          required: false
