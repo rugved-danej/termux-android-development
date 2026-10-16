@@ -51,7 +51,7 @@ ui:
   spinner_style: "braille"
   spinner_interval_ms: 75
   show_elapsed_timer: true
-  color_theme: "cyberpunk-cyan"
+  color_theme: "purple"
   show_banner: false
 
 # Update & Health-Check Automation
@@ -107,11 +107,11 @@ func RunConfig(args []string) error {
 		content := ""
 		if data, err := os.ReadFile(cfg.ConfigFile); err == nil {
 			content = string(data)
-			fmt.Printf("%sConfiguration File: %s%s%s\n\n", ui.Bold+ui.Yellow, ui.Cyan, cfg.ConfigFile, ui.Reset)
+			fmt.Printf("%s: %s\n\n", ui.BrightPurple("◆ Configuration File"), ui.Purple(cfg.ConfigFile))
 		} else {
 			content = DefaultConfigYAML
-			fmt.Printf("%sActive Configuration (Built-in Defaults - File not yet created)%s\n", ui.Bold+ui.Yellow, ui.Reset)
-			fmt.Printf("%sRun 'tadev config init' to persist to %s%s\n\n", ui.Gray, cfg.ConfigFile, ui.Reset)
+			fmt.Printf("%s\n", ui.BrightPurple("◆ Active Configuration (Built-in Defaults)"))
+			fmt.Printf("%s\n\n", ui.GrayText(fmt.Sprintf("Run 'tadev config init' to persist to %s", cfg.ConfigFile)))
 		}
 
 		// Colorize YAML syntax for terminal viewing
@@ -119,12 +119,12 @@ func RunConfig(args []string) error {
 		for _, line := range lines {
 			trimmed := strings.TrimSpace(line)
 			if strings.HasPrefix(trimmed, "#") {
-				fmt.Println(ui.Gray + line + ui.Reset)
+				fmt.Println(ui.GrayText(line))
 			} else if strings.Contains(line, ":") {
 				parts := strings.SplitN(line, ":", 2)
 				key := parts[0]
 				val := parts[1]
-				fmt.Printf("%s%s:%s%s%s\n", ui.Cyan+ui.Bold, key, ui.Reset, ui.Green, val+ui.Reset)
+				fmt.Printf("%s:%s\n", ui.Purple(key), ui.GreenText(val))
 			} else {
 				fmt.Println(line)
 			}

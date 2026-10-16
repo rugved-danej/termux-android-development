@@ -41,7 +41,7 @@ ui:
   spinner_style: "braille"
   spinner_interval_ms: 75
   show_elapsed_timer: true
-  color_theme: "cyberpunk-cyan"
+  color_theme: "purple"
   show_banner: false
 
 # Update & Health-Check Automation

@@ -26,7 +26,7 @@ func RunSdkManager(args []string) error {
 	case "list", "installed":
 		platforms, buildTools := env.ListInstalledSdkPackages(cfg)
 
-		fmt.Printf("%sInstalled SDK Platforms:%s\n", ui.Bold+ui.Cyan, ui.Reset)
+		fmt.Printf("%s\n", ui.BrightPurple("◆ Installed SDK Platforms"))
 		if len(platforms) == 0 {
 			ui.Info("No platforms installed yet.")
 		} else {
@@ -35,7 +35,7 @@ func RunSdkManager(args []string) error {
 			}
 		}
 
-		fmt.Printf("\n%sInstalled Build-Tools:%s\n", ui.Bold+ui.Cyan, ui.Reset)
+		fmt.Printf("\n%s\n", ui.BrightPurple("◆ Installed Build-Tools"))
 		if len(buildTools) == 0 {
 			ui.Info("No build-tools installed yet.")
 		} else {

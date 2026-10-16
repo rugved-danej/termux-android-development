@@ -1,0 +1,42 @@
+name: "Question & Support"
+description: "Ask a question about using tadev, configuring JDKs, or building Android APKs"
+title: "[QUESTION]: "
+labels: ["question", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about configuring your environment or building Android apps in Termux?
+        Developed and maintained by **Rugved Danej** ([@rugved-danej](https://github.com/rugved-danej)).
+        Before asking, please check if your question is answered in `tadev help` or if `tadev doctor` reports any issues.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      options:
+        - "Environment Setup & Installation"
+        - "Java / OpenJDK Profiles & Toolchains"
+        - "Gradle & AAPT2 Builds"
+        - "Android SDK / NDK Configuration"
+        - "Other / General Inquiry"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Describe what you would like to know or accomplish.
+      placeholder: "How do I configure..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Device & Environment Context
+      description: Include your device architecture, Android OS version, or relevant logs.
+      placeholder: "Device: ARM64, Android 15, Java profile: 21"
+    validations:
+      required: false

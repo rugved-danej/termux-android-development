@@ -16,11 +16,3 @@ config.yml
 *.swp
 *~
 
-# Next.js & Fumadocs
-node_modules/
-.next/
-.source/
-website/node_modules/
-website/.next/
-website/.source/
-.vercel

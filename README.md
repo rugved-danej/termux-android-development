@@ -2,7 +2,6 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/rugved-danej/termux-android-development?style=flat-square&color=blueviolet)](https://github.com/rugved-danej/termux-android-development/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/rugved-danej/termux-android-development/ci.yml?branch=main&style=flat-square)](https://github.com/rugved-danej/termux-android-development/actions)
-[![Documentation](https://img.shields.io/badge/Docs-Fumadocs-emerald?style=flat-square)](https://tadev.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Termux Compatible](https://img.shields.io/badge/Termux-Ready-success?style=flat-square)](https://termux.dev)
 [![Developer](https://img.shields.io/badge/Developer-Rugved_Danej-cyan?style=flat-square)](https://github.com/rugved-danej)
@@ -10,13 +9,6 @@
 > **The modern, interactive Android APK development and build engine engineered exclusively for Termux on Android.**
 > Authored and maintained by **Rugved Danej** ([@rugved-danej](https://github.com/rugved-danej)).
 > Features an advanced interactive TUI dashboard, granular uninstaller with self-removal, official OpenJDK 21 LTS (recommended) & 25/17 multi-profile management, native ARM64 AAPT2 overrides, dynamic RAM auto-tuning, and cross-platform architecture support across **Termux on Android** (`arm64`, `arm`, `x86_64`, `386`) — distributed as a **zero-dependency standalone native binary**.
-
----
-
-## Documentation Website
-
-Full documentation, architecture internals, and guides are available on the official documentation site:
-**[https://tadev.vercel.app](https://tadev.vercel.app)** (Powered by [Fumadocs](https://fumadocs.dev))
 
 ---
 
@@ -90,10 +82,10 @@ flowchart TD
 Running `tadev` without arguments in an interactive terminal opens the interactive TUI:
 
 ```text
-Termux Android Development
-  [*] Device: Android Phone / Tablet (ARM64 Termux)
+◆ Termux Android Development
+  • Device: Android Phone / Tablet (ARM64 Termux)
 
-  > Install / Setup Environment    - Configure OpenJDK, Android SDK, AAPT2, and shell paths
+  ❯ Install / Setup Environment    - Configure OpenJDK, Android SDK, AAPT2, and shell paths
     Java Profile Manager           - Switch or test active OpenJDK profiles (21, 25+21, 25+17, 21+17, 25, 17)
     Apply All Available Updates    - Download and apply all upgrades for SDK, tools, and packages
     Check for Updates              - Check Google repositories, package repos, and GitHub releases
@@ -141,7 +133,7 @@ termux-android-dev <command> [options]
 
 ## Java Profile System
 
-`tadev` gives you complete freedom over your Java configuration with hot-switchable profiles. For an in-depth architectural breakdown and complete differences between dual-JDK combinations and single-JDK solos, see [docs/JAVA_PROFILES.md](docs/JAVA_PROFILES.md).
+`tadev` gives you complete freedom over your Java configuration with hot-switchable profiles. Choose between single-JDK solos and dual-JDK combinations to match your workflow:
 
 | Profile | Architecture | Host OpenJDK | Gradle Toolchain | Disk Usage | Best For |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -179,19 +171,19 @@ tadev java test
 Running `tadev uninstall` interactively opens the multi-select component chooser:
 
 ```text
-UNINSTALLATION CHOOSER
-  [*] Select components to remove from your system:
+◆ UNINSTALLATION CHOOSER
+  • Select components to remove from your system:
 
-  > [x] Android SDK Directory       - ~/.android/sdk (Platforms, build-tools, cmdline-tools)
-    [x] Shell Configurations        - Exports & aliases in ~/.bashrc, ~/.zshrc, fish, and profile configs
-    [x] Gradle Properties           - AAPT2 override & toolchain paths in ~/.gradle/gradle.properties
-    [x] Global 'gradlew' Wrapper    - Smart launcher in $PREFIX/bin/gradlew
+  ❯ [✓] Android SDK Directory       - ~/.android/sdk (Platforms, build-tools, cmdline-tools)
+    [✓] Shell Configurations        - Exports & aliases in ~/.bashrc, ~/.zshrc, fish, and profile configs
+    [✓] Gradle Properties           - AAPT2 override & toolchain paths in ~/.gradle/gradle.properties
+    [✓] Global 'gradlew' Wrapper    - Smart launcher in $PREFIX/bin/gradlew
     [ ] OpenJDK 25 Runtime          - Package: openjdk-25 (via pkg)
     [ ] OpenJDK 21 Runtime          - Package: openjdk-21 (via pkg)
     [ ] OpenJDK 17 LTS Runtime      - Package: openjdk-17 (via pkg)
     [ ] Gradle Build System         - Package: gradle (via pkg)
     [ ] Android Tools & AAPT2       - Packages: aapt2, apksigner, d8, android-tools
-    [x] tadev Configuration & Cache - ~/.config/tadev and update caches
+    [✓] tadev Configuration & Cache - ~/.config/tadev and update caches
     [ ] Self-Remove tadev CLI Tool  - Delete tadev binary from device
 
   [Up/Down] Navigate  [Space] Toggle  [a] Toggle All  [Enter] Confirm  [Esc] Cancel
@@ -270,7 +262,7 @@ ui:
   spinner_style: "braille"
   spinner_interval_ms: 75
   show_elapsed_timer: true
-  color_theme: "cyberpunk-cyan"
+  color_theme: "purple"
   show_banner: false
 
 updates:

@@ -3,3 +3,10 @@
 # ==============================================================================
 
 blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/rugved-danej/termux-android-development/discussions
+    about: Ask questions, share ideas, and engage with the community.
+  - name: Security Vulnerabilities
+    url: https://github.com/rugved-danej/termux-android-development/security/advisories/new
+    about: Report security vulnerabilities responsibly.

@@ -51,10 +51,10 @@ func RunNdkCommand(args []string) error {
 func runNdkList(cfg *env.Config) error {
 	versions := env.ListInstalledNdkVersions(cfg)
 
-	fmt.Printf("%sInstalled Android NDK Toolchains:%s\n\n", ui.Bold+ui.Cyan, ui.Reset)
+	fmt.Printf("%s\n\n", ui.BrightPurple("◆ Installed Android NDK Toolchains"))
 	if len(versions) == 0 {
 		ui.Info("No NDK installations detected in " + filepath.Join(cfg.SdkDir, "ndk"))
-		ui.Info(fmt.Sprintf("Run '%stadev ndk install%s' to install the recommended LTS version (%s).", ui.Bold+ui.Green, ui.Reset, DefaultNdkVersion))
+		ui.Info(fmt.Sprintf("Run '%s' to install the recommended LTS version (%s).", ui.Purple("tadev ndk install"), DefaultNdkVersion))
 		return nil
 	}
 
@@ -66,7 +66,7 @@ func runNdkList(cfg *env.Config) error {
 		}
 		activeTag := ""
 		if path == activeNdk {
-			activeTag = fmt.Sprintf(" %s[ACTIVE]%s", ui.Bold+ui.Green, ui.Reset)
+			activeTag = fmt.Sprintf(" %s", ui.GreenText("[ACTIVE]"))
 		}
 		ui.Success(fmt.Sprintf("NDK %s: %s%s", v, path, activeTag))
 	}
@@ -75,12 +75,12 @@ func runNdkList(cfg *env.Config) error {
 }
 
 func runNdkStatus(cfg *env.Config) error {
-	fmt.Printf("%sAndroid NDK Environment Status%s\n\n", ui.Bold+ui.Cyan, ui.Reset)
+	fmt.Printf("%s\n\n", ui.BrightPurple("◆ Android NDK Environment Status"))
 
 	activePath := env.GetActiveNdkPath(cfg)
 	if activePath == "" {
 		ui.Warn("No Android NDK installed.")
-		ui.Info(fmt.Sprintf("Run '%stadev ndk install%s' to download and configure NDK %s.", ui.Bold+ui.Green, ui.Reset, DefaultNdkVersion))
+		ui.Info(fmt.Sprintf("Run '%s' to download and configure NDK %s.", ui.Purple("tadev ndk install"), DefaultNdkVersion))
 		return nil
 	}
 
@@ -138,8 +138,7 @@ func runNdkInstall(cfg *env.Config, version string) error {
 	}
 	ui.PrintBox("NDK INSTALLATION COMPLETE", summary)
 
-	fmt.Printf("\n%sRun %s'%s'%s%s to load NDK into your current shell session.%s\n\n",
-		ui.Cyan, ui.Bold+ui.White, env.GetShellReloadHint(cfg), ui.Reset, ui.Cyan, ui.Reset)
+	fmt.Printf("\nRun '%s' to load NDK into your current shell session.\n\n", ui.Purple(env.GetShellReloadHint(cfg)))
 	return nil
 }
 

@@ -8,8 +8,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	"github.com/pterm/pterm"
 )
 
 // Braille animation frames for smooth high-framerate rendering
@@ -59,35 +57,37 @@ func truncatePlain(s string, maxLen int) string {
 		}
 		return s
 	}
-
-	plain := stripANSI(s)
-	runes := []rune(plain)
-	if len(runes) <= maxLen {
-		return s
+	runes := []rune(s)
+	if len(runes) > maxLen {
+		return string(runes[:maxLen-3]) + "..."
 	}
-	return string(runes[:maxLen-3]) + "..."
+	return s
 }
 
+// Spinner provides a clean, purple-themed braille spinner without brackets or bold.
 type Spinner struct {
 	message   string
 	stop      chan struct{}
 	done      chan struct{}
-	startTime time.Time
-	mu        sync.Mutex
 	active    bool
+	mu        sync.Mutex
+	startTime time.Time
 }
 
-// NewSpinner initializes an in-place braille spinner that prevents line wrapping and line multiplications.
-func NewSpinner(message string) *Spinner {
+// NewSpinner constructs a new Spinner initialized with braille frames.
+func NewSpinner(msg string) *Spinner {
 	ensureSignalHandler()
-	return &Spinner{
-		message: message,
-		stop:    make(chan struct{}),
-		done:    make(chan struct{}),
+	s := &Spinner{
+		message:   msg,
+		stop:      make(chan struct{}),
+		done:      make(chan struct{}),
+		startTime: time.Now(),
 	}
+	s.Start()
+	return s
 }
 
-// Start launches the animated braille spinner strictly on a single line.
+// Start begins the animation loop in a background goroutine.
 func (s *Spinner) Start() {
 	s.mu.Lock()
 	if s.active {
@@ -95,8 +95,14 @@ func (s *Spinner) Start() {
 		return
 	}
 	s.active = true
-	s.startTime = time.Now()
 	s.mu.Unlock()
+
+	// If NO_COLOR or dumb terminal, log message plainly without animation
+	if os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" {
+		Info(s.message)
+		close(s.done)
+		return
+	}
 
 	// Hide cursor during active animation
 	fmt.Print("\033[?25l")
@@ -117,23 +123,17 @@ func (s *Spinner) Start() {
 			case <-ticker.C:
 				s.mu.Lock()
 				msg := s.message
-				st := s.startTime
 				s.mu.Unlock()
 
-				cols := pterm.GetTerminalWidth()
+				cols := TerminalWidth()
 				if cols <= 0 {
 					cols = 80
 				}
 
 				frame := BrailleFrames[i%len(BrailleFrames)]
-				elapsed := fmt.Sprintf(" (%.1fs)", time.Since(st).Seconds())
-				prefix := fmt.Sprintf("  [%s%s%s] ", Cyan+Bold, frame, Reset)
-				timerStr := Gray + elapsed + Reset
-
-				// Prefix plain length: 6 characters ("  [X] ")
-				prefixLen := 6
-				timerLen := len(elapsed)
-				avail := cols - prefixLen - timerLen - 2
+				prefix := fmt.Sprintf("%s ", BrightPurple(frame))
+				prefixLen := 2
+				avail := cols - prefixLen - 2
 				if avail < 4 {
 					avail = 4
 				}
@@ -144,8 +144,7 @@ func (s *Spinner) Start() {
 					displayMsg = truncatePlain(msg, avail)
 				}
 
-				// Always clear line from col 0 to prevent line wrapping & multiplications
-				fmt.Printf("\r\033[K%s%s%s", prefix, displayMsg, timerStr)
+				fmt.Printf("\r\033[K%s%s", prefix, displayMsg)
 				_ = os.Stdout.Sync()
 				i++
 			}
@@ -154,36 +153,34 @@ func (s *Spinner) Start() {
 }
 
 // UpdateMessage dynamically updates the text displayed next to the spinner.
-// It is thread-safe and non-blocking: updates are rendered on the next animation tick.
 func (s *Spinner) UpdateMessage(msg string) {
 	s.mu.Lock()
 	s.message = msg
 	s.mu.Unlock()
 }
 
-// StopSuccess halts the spinner and prints an [OK] status line.
+// StopSuccess halts the spinner and prints a green checkmark success status line.
 func (s *Spinner) StopSuccess(msg string) {
 	s.stopAnimation()
-	duration := time.Since(s.startTime).Round(100 * time.Millisecond)
-	pterm.Success.Printf("%s (%s)\n", msg, pterm.Gray(fmt.Sprintf("%.1fs", duration.Seconds())))
+	Success(msg)
 }
 
-// StopFail halts the spinner and prints a [FAIL] status line.
+// StopFail halts the spinner and prints a red cross error status line.
 func (s *Spinner) StopFail(msg string) {
 	s.stopAnimation()
-	pterm.Error.Println(msg)
+	Fail(msg)
 }
 
-// StopWarn halts the spinner and prints a [WARN] status line.
+// StopWarn halts the spinner and prints a yellow warning status line.
 func (s *Spinner) StopWarn(msg string) {
 	s.stopAnimation()
-	pterm.Warning.Println(msg)
+	Warn(msg)
 }
 
-// StopInfo halts the spinner and prints an [*] status line.
+// StopInfo halts the spinner and prints a purple info bullet status line.
 func (s *Spinner) StopInfo(msg string) {
 	s.stopAnimation()
-	pterm.Info.Println(msg)
+	Info(msg)
 }
 
 func (s *Spinner) stopAnimation() {
@@ -203,7 +200,7 @@ func (s *Spinner) stopAnimation() {
 	_ = os.Stdout.Sync()
 }
 
-// RenderProgressBar returns a compact ASCII progress bar string without emojis.
+// RenderProgressBar returns a clean purple progress bar string matching vtermux style.
 func RenderProgressBar(current, total int64, width int) string {
 	if total <= 0 {
 		return ""
@@ -211,31 +208,12 @@ func RenderProgressBar(current, total int64, width int) string {
 	if current > total {
 		current = total
 	}
-	percent := float64(current) / float64(total)
-	filled := int(percent * float64(width))
-	if filled > width {
-		filled = width
+	percent := float64(current) / float64(total) * 100
+	completed := int(float64(width) * float64(current) / float64(total))
+	if completed > width {
+		completed = width
 	}
-	empty := width - filled
-	if empty < 0 {
-		empty = 0
-	}
+	bar := Purple(strings.Repeat("━", completed)) + GrayText(strings.Repeat("─", width-completed))
 
-	return fmt.Sprintf("[%s%s] %3.0f%%",
-		strings.Repeat("=", filled),
-		strings.Repeat("-", empty),
-		percent*100,
-	)
-}
-
-// NewProgressBar initializes a pterm progress bar with elapsed timer and count.
-func NewProgressBar(total int, title string) (*pterm.ProgressbarPrinter, error) {
-	return pterm.DefaultProgressbar.
-		WithTotal(total).
-		WithTitle(title).
-		WithShowElapsedTime(true).
-		WithShowCount(true).
-		WithBarCharacter("=").
-		WithBarFiller("-").
-		Start()
+	return fmt.Sprintf("[%s] %s%3.0f%%%s", bar, ColorGreen, percent, ColorReset)
 }

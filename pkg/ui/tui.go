@@ -8,7 +8,6 @@ import (
 	"atomicgo.dev/cursor"
 	"atomicgo.dev/keyboard"
 	"atomicgo.dev/keyboard/keys"
-	"github.com/pterm/pterm"
 )
 
 // IsTerminal checks if standard input is attached to an interactive terminal device.
@@ -22,8 +21,8 @@ func IsTerminal() bool {
 
 // GetTerminalSize returns the current columns and rows of the terminal window.
 func GetTerminalSize() (width int, height int) {
-	w := pterm.GetTerminalWidth()
-	h := pterm.GetTerminalHeight()
+	w := TerminalWidth()
+	h := TerminalHeight()
 	if w <= 0 {
 		w = 80
 	}
@@ -79,33 +78,10 @@ func padBoxLine(line string, width int) string {
 	if pad < 0 {
 		pad = 0
 	}
-	return line + strings.Repeat(" ", pad) + " │"
-}
-
-func wrapText(text string, maxLen int) []string {
-	if maxLen <= 10 {
-		maxLen = 40
-	}
-	words := strings.Fields(text)
-	if len(words) == 0 {
-		return []string{""}
-	}
-	var lines []string
-	curr := words[0]
-	for _, w := range words[1:] {
-		if len(curr)+1+len(w) <= maxLen {
-			curr += " " + w
-		} else {
-			lines = append(lines, curr)
-			curr = w
-		}
-	}
-	lines = append(lines, curr)
-	return lines
+	return line + strings.Repeat(" ", pad) + ColorPurple + "│" + ColorReset
 }
 
 // RunSelectMenu displays an interactive dashboard menu with live Ctrl+D detailed description support.
-// Prevents line duplication, supports keyboard shortcuts, and responds smoothly across all terminal widths.
 func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool, error) {
 	if !IsTerminal() || len(items) == 0 {
 		return 0, false, nil
@@ -139,10 +115,10 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 		}
 		var b strings.Builder
 
-		b.WriteString(truncateLine(fmt.Sprintf("%s%s%s%s", Cyan, Bold, defaultTitle, Reset), cols-2) + "\n")
+		b.WriteString(truncateLine(BrightPurple("◆ "+defaultTitle), cols-2) + "\n")
 		headerLines := 2
 		if deviceDesc != "" {
-			b.WriteString(truncateLine(fmt.Sprintf("  %s[*]%s Device: %s%s%s", Cyan+Bold, Reset, Bold, deviceDesc, Reset), cols-2) + "\n")
+			b.WriteString(truncateLine(fmt.Sprintf("  %s Device: %s", Purple(SymbolBullet), deviceDesc), cols-2) + "\n")
 			headerLines = 3
 		}
 		b.WriteString("\n")
@@ -206,10 +182,10 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 		for i := startIdx; i < endIdx; i++ {
 			it := items[i]
 			prefix := "    "
-			style := White
+			itemTitle := it.Title
 			if i == cursorIdx {
-				prefix = fmt.Sprintf("  %s> %s", Cyan+Bold, Reset)
-				style = Cyan + Bold
+				prefix = fmt.Sprintf("  %s ", Purple(SymbolArrow))
+				itemTitle = Purple(it.Title)
 			}
 
 			var line string
@@ -221,12 +197,12 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 					if len(desc) > avail && avail > 3 {
 						desc = desc[:avail-3] + "..."
 					}
-					line = fmt.Sprintf("%s%s%s%s- %s%s", prefix, style, it.Title, Reset+padding, Gray, desc)
+					line = fmt.Sprintf("%s%s%s- %s%s", prefix, itemTitle, padding, Gray, desc)
 				} else {
-					line = fmt.Sprintf("%s%s%s%s", prefix, style, it.Title, Reset)
+					line = fmt.Sprintf("%s%s", prefix, itemTitle)
 				}
 			} else {
-				line = fmt.Sprintf("%s%s%s%s", prefix, style, it.Title, Reset)
+				line = fmt.Sprintf("%s%s", prefix, itemTitle)
 			}
 			b.WriteString(truncateLine(line, cols-2) + "\n")
 		}
@@ -240,23 +216,23 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 			curItem := items[cursorIdx]
 			b.WriteString("\n")
 
-			topBorder := fmt.Sprintf("  ┌─ %sDetailed Description%s %s┐", Cyan+Bold, Reset, strings.Repeat("─", boxWidth-26))
+			topBorder := fmt.Sprintf("  %s┌─ Detailed Description %s┐%s", ColorPurple, strings.Repeat("─", boxWidth-26), ColorReset)
 			b.WriteString(truncateLine(topBorder, cols-2) + "\n")
 
-			actionLine := fmt.Sprintf("  │ %sAction:%s   %s", Cyan+Bold, Reset, curItem.Title)
+			actionLine := fmt.Sprintf("  %s│%s  Action:   %s", ColorPurple, ColorReset, curItem.Title)
 			b.WriteString(truncateLine(padBoxLine(actionLine, boxWidth), cols-2) + "\n")
 
 			for idx, dl := range descLines {
 				var lineStr string
 				if idx == 0 {
-					lineStr = fmt.Sprintf("  │ %sDetails:%s  %s", Gray, Reset, dl)
+					lineStr = fmt.Sprintf("  %s│%s  Details:  %s", ColorPurple, ColorReset, dl)
 				} else {
-					lineStr = fmt.Sprintf("  │           %s", dl)
+					lineStr = fmt.Sprintf("  %s│%s            %s", ColorPurple, ColorReset, dl)
 				}
 				b.WriteString(truncateLine(padBoxLine(lineStr, boxWidth), cols-2) + "\n")
 			}
 
-			botBorder := fmt.Sprintf("  └%s┘", strings.Repeat("─", boxWidth-2))
+			botBorder := fmt.Sprintf("  %s└%s┘%s", ColorPurple, strings.Repeat("─", boxWidth-2), ColorReset)
 			b.WriteString(truncateLine(botBorder, cols-2) + "\n")
 		}
 
@@ -265,7 +241,7 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 		if showDetails {
 			toggleHint = "[Ctrl+D] Hide Details"
 		}
-		b.WriteString(truncateLine(fmt.Sprintf("  %s[Up/Down] Navigate  [Enter] Select  %s%s%s  [Esc] Exit%s", Gray, Cyan, toggleHint, Gray, Reset), cols-2))
+		b.WriteString(truncateLine(fmt.Sprintf("  %s[Up/Down] Navigate  [Enter] Select  %s%s%s  [Esc] Exit%s", Gray, ColorPurple, toggleHint, Gray, Reset), cols-2))
 
 		return b.String()
 	}
@@ -322,9 +298,6 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 						cursorIdx = 0
 					}
 					draw()
-				} else if r == 'd' || r == 'D' {
-					showDetails = !showDetails
-					draw()
 				} else if r == 'q' || r == 'Q' {
 					confirmed = false
 					return true, nil
@@ -348,15 +321,13 @@ func RunSelectMenu(title string, deviceDesc string, items []MenuItem) (int, bool
 	if err != nil || !confirmed {
 		return 0, false, nil
 	}
-
-	pterm.Success.Printf("Selected: %s\n\n", pterm.Cyan(items[cursorIdx].Title))
 	return cursorIdx, true, nil
 }
 
-// RunCheckboxMenu displays an in-place interactive multiselect menu without line duplications or search prompts.
-func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*CheckboxOption, bool, error) {
+// RunCheckboxMenu displays an interactive multi-selection component chooser.
+func RunCheckboxMenu(title string, subtitle string, items []*CheckboxOption) ([]*CheckboxOption, bool, error) {
 	if !IsTerminal() || len(items) == 0 {
-		return items, true, nil
+		return items, false, nil
 	}
 
 	MarkBannerPrinted()
@@ -371,7 +342,7 @@ func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*Checkb
 		}
 	}
 
-	defaultTitle := "Select Components"
+	defaultTitle := "SELECT COMPONENTS"
 	if title != "" {
 		defaultTitle = title
 	}
@@ -386,10 +357,10 @@ func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*Checkb
 		}
 		var b strings.Builder
 
-		b.WriteString(truncateLine(fmt.Sprintf("%s%s%s%s", Cyan, Bold, defaultTitle, Reset), cols-2) + "\n")
+		b.WriteString(truncateLine(BrightPurple("◆ "+defaultTitle), cols-2) + "\n")
 		headerLines := 2
 		if subtitle != "" {
-			b.WriteString(truncateLine(fmt.Sprintf("  %s[*]%s %s", Cyan+Bold, Reset, subtitle), cols-2) + "\n")
+			b.WriteString(truncateLine(fmt.Sprintf("  %s %s", Purple(SymbolBullet), subtitle), cols-2) + "\n")
 			headerLines = 3
 		}
 		b.WriteString("\n")
@@ -429,15 +400,15 @@ func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*Checkb
 		for i := startIdx; i < endIdx; i++ {
 			it := items[i]
 			pointer := "  "
-			style := White
+			itemLabel := it.Label
 			if i == cursorIdx {
-				pointer = fmt.Sprintf("%s> %s", Cyan+Bold, Reset)
-				style = Cyan + Bold
+				pointer = fmt.Sprintf("%s ", Purple(SymbolArrow))
+				itemLabel = Purple(it.Label)
 			}
 
 			checkStr := "[ ] "
 			if it.Checked {
-				checkStr = fmt.Sprintf("[%sx%s] ", Green+Bold, Reset)
+				checkStr = fmt.Sprintf("[%s] ", GreenText(SymbolCheck))
 			}
 
 			var line string
@@ -448,9 +419,9 @@ func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*Checkb
 				if len(desc) > avail && avail > 3 {
 					desc = desc[:avail-3] + "..."
 				}
-				line = fmt.Sprintf("  %s%s%s%s%s- %s%s", pointer, checkStr, style, it.Label, Reset+padding, Gray, desc)
+				line = fmt.Sprintf("  %s%s%s%s- %s%s", pointer, checkStr, itemLabel, padding, Gray, desc)
 			} else {
-				line = fmt.Sprintf("  %s%s%s%s%s", pointer, checkStr, style, it.Label, Reset)
+				line = fmt.Sprintf("  %s%s%s", pointer, checkStr, itemLabel)
 			}
 			b.WriteString(truncateLine(line, cols-2) + "\n")
 		}
@@ -557,13 +528,11 @@ func RunCheckboxMenu(title, subtitle string, items []*CheckboxOption) ([]*Checkb
 		}
 	}
 
-	pterm.Success.Printf("Selected %d component(s) for uninstallation.\n\n", selectedCount)
+	Successf("Selected %d component(s) for uninstallation.\n", selectedCount)
 	return items, true, nil
 }
 
 // RunJavaProfileMenu displays an interactive Java profile selector without inline descriptions.
-// Users navigate with Up/Down, select with Enter, or press Tab to open the GitHub documentation
-// with detailed comparisons between combinations and solos directly in their default browser.
 func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpURL string) (int, bool, error) {
 	if !IsTerminal() || len(items) == 0 {
 		return 0, false, nil
@@ -590,10 +559,10 @@ func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpU
 		}
 		var b strings.Builder
 
-		b.WriteString(truncateLine(fmt.Sprintf("%s%s%s%s", Cyan, Bold, defaultTitle, Reset), cols-2) + "\n")
+		b.WriteString(truncateLine(BrightPurple("◆ "+defaultTitle), cols-2) + "\n")
 		headerLines := 2
 		if deviceDesc != "" {
-			b.WriteString(truncateLine(fmt.Sprintf("  %s[*]%s Device: %s%s%s", Cyan+Bold, Reset, Bold, deviceDesc, Reset), cols-2) + "\n")
+			b.WriteString(truncateLine(fmt.Sprintf("  %s Device: %s", Purple(SymbolBullet), deviceDesc), cols-2) + "\n")
 			headerLines = 3
 		}
 		b.WriteString("\n")
@@ -638,12 +607,12 @@ func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpU
 		for i := startIdx; i < endIdx; i++ {
 			it := items[i]
 			prefix := "    "
-			style := White
+			itemTitle := it.Title
 			if i == cursorIdx {
-				prefix = fmt.Sprintf("  %s> %s", Cyan+Bold, Reset)
-				style = Cyan + Bold
+				prefix = fmt.Sprintf("  %s ", Purple(SymbolArrow))
+				itemTitle = Purple(it.Title)
 			}
-			line := fmt.Sprintf("%s%s%s%s", prefix, style, it.Title, Reset)
+			line := fmt.Sprintf("%s%s", prefix, itemTitle)
 			b.WriteString(truncateLine(line, cols-2) + "\n")
 		}
 
@@ -653,9 +622,9 @@ func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpU
 
 		b.WriteString("\n")
 		if statusMsg != "" {
-			b.WriteString(truncateLine(fmt.Sprintf("  %s%s%s\n", Green, statusMsg, Reset), cols-2))
+			b.WriteString(truncateLine(fmt.Sprintf("  %s\n", GreenText(statusMsg)), cols-2))
 		}
-		b.WriteString(truncateLine(fmt.Sprintf("  %s[Up/Down] Navigate  [Enter] Select  %s[Tab] Differences (Docs)%s  [Esc] Exit%s", Gray, Cyan, Gray, Reset), cols-2))
+		b.WriteString(truncateLine(fmt.Sprintf("  %s[Up/Down] Navigate  [Enter] Select  [Esc] Exit%s", Gray, Reset), cols-2))
 
 		return b.String()
 	}
@@ -696,7 +665,7 @@ func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpU
 				go func() {
 					_ = OpenBrowser(helpURL)
 				}()
-				statusMsg = "[OK] Opening comparison guide in browser..."
+				statusMsg = "Opening comparison guide in browser..."
 				draw()
 			}
 
@@ -708,7 +677,7 @@ func RunJavaProfileMenu(title string, deviceDesc string, items []MenuItem, helpU
 						go func() {
 							_ = OpenBrowser(helpURL)
 						}()
-						statusMsg = "[OK] Opening comparison guide in browser..."
+						statusMsg = "Opening comparison guide in browser..."
 						draw()
 					}
 				} else if r == 'k' || r == 'K' {

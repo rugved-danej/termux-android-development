@@ -39,29 +39,18 @@ func RunCompletionCommand(args []string) error {
 		return installCompletion(cfg)
 
 	default:
-		ui.PrintBanner()
-		fmt.Printf(`%sShell Tab-Completion for tadev%s
-
-Generate or install tab-completion for your active shell.
-
-%sUSAGE:%s
-  tadev completion bash       # Print Bash completion script
-  tadev completion zsh        # Print Zsh completion script
-  tadev completion fish       # Print Fish completion script
-  tadev completion install    # Automatically install completion into your shell RC
-
-%sQUICK SETUP:%s
-  %sBash:%s  echo 'source <(tadev completion bash)' >> ~/.bashrc
-  %sZsh:%s   echo 'source <(tadev completion zsh)' >> ~/.zshrc
-  %sFish:%s  tadev completion fish > ~/.config/fish/completions/tadev.fish
-`,
-			ui.Bold+ui.Cyan, ui.Reset,
-			ui.Bold+ui.Yellow, ui.Reset,
-			ui.Bold+ui.Yellow, ui.Reset,
-			ui.Bold+ui.Green, ui.Reset,
-			ui.Bold+ui.Green, ui.Reset,
-			ui.Bold+ui.Green, ui.Reset,
-		)
+		fmt.Printf("%s\n\n", ui.BrightPurple("◆ Shell Tab-Completion for tadev"))
+		fmt.Println("Generate or install tab-completion for your active shell.")
+		fmt.Println()
+		fmt.Printf("%s\n", ui.BrightPurple("◆ USAGE"))
+		fmt.Printf("  %s %s\n", ui.Purple("tadev completion bash"), ui.GrayText("# Print Bash completion script"))
+		fmt.Printf("  %s %s\n", ui.Purple("tadev completion zsh"), ui.GrayText("# Print Zsh completion script"))
+		fmt.Printf("  %s %s\n", ui.Purple("tadev completion fish"), ui.GrayText("# Print Fish completion script"))
+		fmt.Printf("  %s %s\n\n", ui.Purple("tadev completion install"), ui.GrayText("# Automatically install completion into your shell RC"))
+		fmt.Printf("%s\n", ui.BrightPurple("◆ QUICK SETUP"))
+		fmt.Printf("  %s  %s\n", ui.Purple("Bash:"), ui.YellowText("echo 'source <(tadev completion bash)' >> ~/.bashrc"))
+		fmt.Printf("  %s   %s\n", ui.Purple("Zsh:"), ui.YellowText("echo 'source <(tadev completion zsh)' >> ~/.zshrc"))
+		fmt.Printf("  %s  %s\n\n", ui.Purple("Fish:"), ui.YellowText("tadev completion fish > ~/.config/fish/completions/tadev.fish"))
 		return nil
 	}
 }
@@ -108,8 +97,7 @@ func installCompletion(cfg *env.Config) error {
 		sp.StopSuccess(fmt.Sprintf("Bash tab-completion hook added to %s", bashrc))
 	}
 
-	fmt.Printf("\n%sRestart your shell or run %s'%s'%s%s to enable tab-completion.%s\n\n",
-		ui.Cyan, ui.Bold+ui.White, env.GetShellReloadHint(cfg), ui.Reset, ui.Cyan, ui.Reset)
+	fmt.Printf("\nRestart your shell or run '%s' to enable tab-completion.\n\n", ui.Purple(env.GetShellReloadHint(cfg)))
 	return nil
 }
 

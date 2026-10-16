@@ -127,15 +127,15 @@ func CheckUpdates(cfg *env.Config, currentVersion string, quiet bool) error {
 
 	if len(updates) > 0 {
 		if quiet {
-			fmt.Println("\n" + ui.Yellow + ui.Bold + "[*] [tadev] Updates available for Android SDK / tadev CLI!" + ui.Reset)
-			fmt.Println("   Run " + ui.Cyan + "'tadev check-updates'" + ui.Reset + " or " + ui.Cyan + "'tadev update'" + ui.Reset + " to view and apply.")
+			fmt.Printf("\n%s Updates available for Android SDK / tadev CLI!\n", ui.Purple(ui.SymbolBullet))
+			fmt.Printf("   Run '%s' or '%s' to view and apply.\n", ui.Purple("tadev check-updates"), ui.Purple("tadev update"))
 		} else {
 			fmt.Println()
 			ui.PrintBox("AVAILABLE UPDATES", updates)
-			fmt.Printf("\nRun %stadev update%s to apply all updates.\n\n", ui.Green+ui.Bold, ui.Reset)
+			fmt.Printf("\nRun %s to apply all updates.\n\n", ui.Purple("tadev update"))
 		}
 	} else if !quiet {
-		fmt.Printf("\n%sYour Android SDK, OpenJDK, build tools, and tadev CLI are all on the latest versions.%s\n\n", ui.Green, ui.Reset)
+		ui.Success("Your Android SDK, OpenJDK, build tools, and tadev CLI are all on the latest versions.\n")
 	}
 
 	return nil
@@ -185,6 +185,6 @@ func ApplyUpdates(cfg *env.Config) error {
 
 	_ = os.WriteFile(cfg.UpdateCache, []byte(strconv.FormatInt(time.Now().Unix(), 10)), 0644)
 
-	fmt.Printf("\n%s[OK] All Android development environment updates applied successfully!%s\n\n", ui.Green+ui.Bold, ui.Reset)
+	ui.Success("All Android development environment updates applied successfully!\n")
 	return nil
 }

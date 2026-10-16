@@ -48,11 +48,11 @@ func RunSetup(force bool, javaProfile string) error {
 	// Step 1: Detect architecture and environment
 	ui.Step(fmt.Sprintf("%d", currentStep), totalSteps, "Detecting System Architecture & Environment")
 	currentStep++
-	ui.Info(fmt.Sprintf("Device:       %s%s%s", ui.Cyan+ui.Bold, cfg.DeviceClass, ui.Reset))
-	ui.Info(fmt.Sprintf("Architecture: %s%s%s", ui.Cyan+ui.Bold, cfg.Arch, ui.Reset))
-	ui.Info(fmt.Sprintf("System RAM:   %s%.1f GB%s (Auto-tuned Gradle Heap: %s%s%s)", ui.Cyan+ui.Bold, float64(cfg.TotalMemMB)/1024, ui.Reset, ui.Green, cfg.JvmArgs, ui.Reset))
-	ui.Info(fmt.Sprintf("SDK Location: %s%s%s (Hidden)", ui.Cyan, cfg.SdkDir, ui.Reset))
-	ui.Info(fmt.Sprintf("Java Profile: %s%s%s", ui.Green+ui.Bold, selectedProfile.Title, ui.Reset))
+	ui.Infof("Device:       %s", ui.Purple(cfg.DeviceClass))
+	ui.Infof("Architecture: %s", ui.Purple(cfg.Arch))
+	ui.Infof("System RAM:   %.1f GB (Auto-tuned Gradle Heap: %s)", float64(cfg.TotalMemMB)/1024, ui.Purple(cfg.JvmArgs))
+	ui.Infof("SDK Location: %s (Hidden)", ui.Purple(cfg.SdkDir))
+	ui.Infof("Java Profile: %s", ui.GreenText(selectedProfile.Title))
 	ui.Success("Environment validated.")
 
 	// Step 2: Install Termux native packages
@@ -123,20 +123,19 @@ func RunSetup(force bool, javaProfile string) error {
 
 	fmt.Println()
 	summary := []string{
-		fmt.Sprintf("Java Profile:     %s%s%s", ui.Green, selectedProfile.Title, ui.Reset),
-		fmt.Sprintf("SDK Directory:    %s%s%s", ui.Yellow, cfg.SdkDir, ui.Reset),
-		fmt.Sprintf("Native AAPT2:     %s%s/aapt2 (ARM64)%s", ui.Green, cfg.PrefixBin, ui.Reset),
-		fmt.Sprintf("Global Launcher:  %s%s%s", ui.Green, filepath.Join(cfg.PrefixBin, "gradlew"), ui.Reset),
+		fmt.Sprintf("Java Profile:     %s", ui.GreenText(selectedProfile.Title)),
+		fmt.Sprintf("SDK Directory:    %s", ui.YellowText(cfg.SdkDir)),
+		fmt.Sprintf("Native AAPT2:     %s/aapt2 (%s)", cfg.PrefixBin, cfg.Arch),
+		fmt.Sprintf("Global Launcher:  %s", filepath.Join(cfg.PrefixBin, "gradlew")),
 	}
 	ui.PrintBox("SETUP COMPLETE", summary)
 
 	if ui.IsTerminal() {
-		fmt.Printf("\n%sClearing console and restarting shell in 2 seconds...%s\n", ui.Cyan, ui.Reset)
+		fmt.Printf("\n%s\n", ui.Purple("Clearing console and restarting shell in 2 seconds..."))
 		time.Sleep(2 * time.Second)
 		return env.ClearAndRestartShell(cfg)
 	}
 
-	fmt.Printf("\n%sRun %s'%s'%s%s to begin building APKs!%s\n\n",
-		ui.Cyan, ui.White, env.GetShellReloadHint(cfg), ui.Reset, ui.Cyan, ui.Reset)
+	fmt.Printf("\nRun '%s' to begin building APKs!\n\n", ui.Purple(env.GetShellReloadHint(cfg)))
 	return nil
 }

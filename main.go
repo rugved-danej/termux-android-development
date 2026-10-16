@@ -18,82 +18,94 @@ var (
 	Repo    = "https://github.com/rugved-danej/termux-android-development"
 )
 
+func printCmdRow(cmd, desc string) {
+	termWidth := ui.TerminalWidth()
+	if termWidth < 64 {
+		fmt.Printf("  %s %s\n     %s\n", ui.Purple(ui.SymbolArrow), ui.Purple(cmd), ui.GrayText(desc))
+		return
+	}
+	padding := 26 - len(cmd)
+	if padding < 1 {
+		padding = 1
+	}
+	fmt.Printf("  %s %s%s %s\n", ui.Purple(ui.SymbolArrow), ui.Purple(cmd), strings.Repeat(" ", padding), ui.GrayText(desc))
+}
+
+func printWorkflowRow(label, cmd string) {
+	termWidth := ui.TerminalWidth()
+	if termWidth < 64 {
+		fmt.Printf("  %s %s\n     %s\n", ui.Purple(ui.SymbolBullet), label, ui.YellowText(cmd))
+		return
+	}
+	padding := 27 - ui.VisibleLen(label)
+	if padding < 1 {
+		padding = 1
+	}
+	fmt.Printf("  %s %s%s %s\n", ui.Purple(ui.SymbolBullet), label, strings.Repeat(" ", padding), ui.YellowText(cmd))
+}
+
+func printOptionRow(opt, desc string) {
+	termWidth := ui.TerminalWidth()
+	if termWidth < 64 {
+		fmt.Printf("  %s %s\n     %s\n", ui.Purple(ui.SymbolBullet), ui.Purple(opt), ui.GrayText(desc))
+		return
+	}
+	padding := 26 - len(opt)
+	if padding < 1 {
+		padding = 1
+	}
+	fmt.Printf("  %s %s%s %s\n", ui.Purple(ui.SymbolBullet), ui.Purple(opt), strings.Repeat(" ", padding), ui.GrayText(desc))
+}
+
 func showHelp() {
-	ui.PrintBanner()
-	fmt.Printf(`%sUSAGE:%s
-  tadev <command> [options]
+	fmt.Printf("%s\n", ui.BrightPurple("◆ USAGE"))
+	fmt.Printf("  %s <command> [options]\n", ui.Purple("tadev"))
+	fmt.Printf("  %s <command> [options]         %s\n\n", ui.Purple("termux-android-dev"), ui.GrayText("(canonical symlink)"))
 
-%sCORE ENVIRONMENT COMMANDS:%s
-  %sinstall%s, setup          Install complete Android development environment
-  %sjava%s [switch|list|test] Manage OpenJDK profiles (21, 25+21, 25+17, 21+17, 25, 17)
-  %suninstall%s, remove        Granular uninstallation (interactive chooser or flags)
-  %supdate%s, upgrade          Download and apply all available updates (SDK, JDK, tools)
-  %scheck%s, check-updates     Check for updates (SDK tools, package repos, and tadev CLI)
-  %ssdk%s [list|install <pkg>] Inspect installed platforms or install extra SDK packages
-  %sndk%s [status|install|list] Manage Android NDK native toolchains & shebangs
-  %sclean%s [all|gradle|sdk]   Purge temporary build caches, daemon logs, and reclaim storage
-  %scompletion%s [shell]       Generate or install native shell tab-completion (bash/zsh/fish)
-  %sdoctor%s, status           Run diagnostic health checks on all components
-  %sconfig%s [action]          Inspect or initialize configuration (show/init/reset/path)
-  %sself-update%s              Upgrade the tadev CLI binary directly from GitHub
-  %smenu%s, tui, dashboard     Launch interactive terminal UI dashboard
-  %sversion%s, -v              Show tadev version & author information
-  %shelp%s, -h                 Display this guide
+	fmt.Printf("%s\n", ui.BrightPurple("◆ CORE ENVIRONMENT COMMANDS"))
+	printCmdRow("install, setup", "Install complete Android development environment")
+	printCmdRow("java [switch|list|test]", "Manage OpenJDK profiles (21, 25+21, 25+17, 21+17, 25, 17)")
+	printCmdRow("uninstall, remove", "Granular uninstallation (interactive chooser or flags)")
+	printCmdRow("update, upgrade", "Download and apply all available updates (SDK, JDK, tools)")
+	printCmdRow("check, check-updates", "Check for updates (SDK tools, package repos, and tadev CLI)")
+	printCmdRow("sdk [list|install <pkg>]", "Inspect installed platforms or install extra SDK packages")
+	printCmdRow("ndk [status|install|list]", "Manage Android NDK native toolchains & shebangs")
+	printCmdRow("clean [all|gradle|sdk]", "Purge temporary build caches, daemon logs, and reclaim storage")
+	printCmdRow("completion [shell]", "Generate or install native shell tab-completion (bash/zsh/fish)")
+	printCmdRow("doctor, status", "Run diagnostic health checks on all components")
+	printCmdRow("config [action]", "Inspect or initialize configuration (show/init/reset/path)")
+	printCmdRow("self-update", "Upgrade the tadev CLI binary directly from GitHub")
+	printCmdRow("menu, tui, dashboard", "Launch interactive terminal UI dashboard")
+	printCmdRow("version, -v", "Show tadev version & author information")
+	printCmdRow("help, -h", "Display this guide")
 
-%sJAVA PROFILES:%s
-  21                       OpenJDK 21 LTS Only (Single JDK, 100%% AGP Stable, Saves ~300MB) [Recommended]
-  25+21                    OpenJDK 25 (Host) + OpenJDK 21 (Gradle Toolchain)
-  25+17                    OpenJDK 25 (Host) + OpenJDK 17 (Gradle Toolchain)
-  21+17                    OpenJDK 21 (Host) + OpenJDK 17 (Gradle Toolchain)
-  25                       OpenJDK 25 LTS Only (Single JDK, Modern 2025 LTS Standard)
-  17                       OpenJDK 17 LTS Only (Single JDK, AGP 8.0 Baseline)
+	fmt.Printf("\n%s\n", ui.BrightPurple("◆ JAVA PROFILES"))
+	printOptionRow("21", "OpenJDK 21 LTS Only (Single JDK, 100% AGP Stable, Saves ~300MB) [Recommended]")
+	printOptionRow("25+21", "OpenJDK 25 (Host) + OpenJDK 21 (Gradle Toolchain)")
+	printOptionRow("25+17", "OpenJDK 25 (Host) + OpenJDK 17 (Gradle Toolchain)")
+	printOptionRow("21+17", "OpenJDK 21 (Host) + OpenJDK 17 (Gradle Toolchain)")
+	printOptionRow("25", "OpenJDK 25 LTS Only (Single JDK, Modern 2025 LTS Standard)")
+	printOptionRow("17", "OpenJDK 17 LTS Only (Single JDK, AGP 8.0 Baseline)")
 
-%sUNINSTALL OPTIONS:%s
-  --all                    Purge EVERYTHING: SDK, JDKs, packages, config, and self-remove
-  --self                   Self-remove tadev and termux-android-dev binaries from system
-  --packages               Purge installed development packages (Java 25, 21, 17, Gradle, AAPT2)
-  --sdk-only               Delete only the Android SDK directory (~/.android/sdk)
-  -y, --yes                Skip confirmation prompts
+	fmt.Printf("\n%s\n", ui.BrightPurple("◆ UNINSTALL OPTIONS"))
+	printOptionRow("--all", "Purge EVERYTHING: SDK, JDKs, packages, config, and self-remove")
+	printOptionRow("--self", "Self-remove tadev and termux-android-dev binaries from system")
+	printOptionRow("--packages", "Purge installed development packages (Java 25, 21, 17, Gradle, AAPT2)")
+	printOptionRow("--sdk-only", "Delete only the Android SDK directory (~/.android/sdk)")
+	printOptionRow("-y, --yes", "Skip confirmation prompts")
 
-%sGENERAL OPTIONS:%s
-  --java <profile>         Specify Java environment profile (e.g. 21, 25+21, 25+17, 21+17, 25, 17)
-  --force                  Force re-installation / re-download of tools
-  --quiet                  Quiet output mode (for background cron/shell checks)
+	fmt.Printf("\n%s\n", ui.BrightPurple("◆ GENERAL OPTIONS"))
+	printOptionRow("--java <profile>", "Specify Java environment profile (e.g. 21, 25+21, 25+17, 21+17, 25, 17)")
+	printOptionRow("--force", "Force re-installation / re-download of tools")
+	printOptionRow("--quiet", "Quiet output mode (for background cron/shell checks)")
 
-%sEXAMPLES:%s
-  tadev                             # Launch interactive TUI Dashboard
-  tadev install                     # Interactive setup (prompts for Java profile)
-  tadev install --java 21           # Headless installation with single OpenJDK 21 LTS
-  tadev java switch 21              # Switch active profile to single OpenJDK 21 LTS
-  tadev java test                   # Test all installed Java versions (javac, gradle, d8, apksigner)
-  tadev ndk install                 # Install recommended LTS Android NDK toolchains
-  tadev clean                       # Reclaim device storage by purging temporary build caches
-  tadev completion install          # Install native tab-completion for active shell
-  tadev doctor                      # Diagnose system health & architecture
-  tadev uninstall                   # Interactive uninstallation chooser
-`,
-		ui.Bold+ui.Yellow, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Green, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Red, ui.Reset,
-		ui.Bold+ui.Green, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Magenta, ui.Reset,
-		ui.Bold+ui.Yellow, ui.Reset,
-		ui.Bold+ui.Green, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Blue, ui.Reset,
-		ui.Bold+ui.Yellow, ui.Reset,
-		ui.Bold+ui.Gray, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Gray, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Cyan, ui.Reset,
-		ui.Bold+ui.Yellow, ui.Reset,
-		ui.Bold+ui.Yellow, ui.Reset,
-		ui.Bold+ui.Yellow, ui.Reset,
-	)
+	fmt.Printf("\n%s\n", ui.BrightPurple("◆ COMMON WORKFLOWS"))
+	printWorkflowRow("1. Interactive dashboard:", "tadev")
+	printWorkflowRow("2. Setup environment:", "tadev install")
+	printWorkflowRow("3. Switch Java version:", "tadev java switch 21")
+	printWorkflowRow("4. Diagnose health:", "tadev doctor")
+	printWorkflowRow("5. Clean build caches:", "tadev clean")
+	fmt.Println()
 }
 
 func runDashboard(cfg *env.Config) {
@@ -172,7 +184,7 @@ func main() {
 	args := os.Args[2:]
 
 	if command == "version" || command == "--version" || command == "-v" {
-		fmt.Printf("tadev %s\nAuthor: %s\nRepo:   %s\nDevice: %s\n", Version, Author, Repo, cfg.DeviceClass)
+		fmt.Printf("%s version %s (arch: %s, device: %s)\n", ui.Purple("tadev"), ui.GreenText(Version), cfg.Arch, cfg.DeviceClass)
 		return
 	}
 

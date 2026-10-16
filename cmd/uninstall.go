@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -96,11 +95,7 @@ func RunUninstall(flags UninstallFlags) error {
 			selected[it.ID] = it.Checked
 		}
 	} else if !flags.AutoConfirm {
-		// Non-interactive fallback prompt
-		fmt.Printf("%s%sProceed with uninstallation? (y/N): %s", ui.Yellow, ui.Bold, ui.Reset)
-		reader := bufio.NewReader(os.Stdin)
-		res, _ := reader.ReadString('\n')
-		if strings.TrimSpace(strings.ToLower(res)) != "y" && strings.TrimSpace(strings.ToLower(res)) != "yes" {
+		if !ui.Confirm("Proceed with uninstallation?", false) {
 			ui.Info("Uninstallation cancelled by user.")
 			return nil
 		}
@@ -217,13 +212,12 @@ func RunUninstall(flags UninstallFlags) error {
 		_ = os.Remove(altBin)
 		_ = os.Remove(tadevBin)
 		sp.StopSuccess("tadev CLI binaries deleted.")
-		fmt.Printf("\n%s[OK] Complete uninstallation finished! tadev has been completely removed from your device.%s\n\n", ui.Green+ui.Bold, ui.Reset)
+		ui.Success("Complete uninstallation finished! tadev has been completely removed from your device.\n")
 		return nil
 	}
 
-	fmt.Printf("\n%s[OK] Selected components successfully uninstalled!%s\n", ui.Green+ui.Bold, ui.Reset)
-	fmt.Printf("%sRestart your shell or run %s'%s'%s%s to finalize changes.%s\n\n",
-		ui.Cyan, ui.White+ui.Bold, env.GetShellReloadHint(cfg), ui.Reset, ui.Cyan, ui.Reset)
+	ui.Success("Selected components successfully uninstalled!")
+	fmt.Printf("Restart your shell or run '%s' to finalize changes.\n\n", ui.Purple(env.GetShellReloadHint(cfg)))
 
 	return nil
 }

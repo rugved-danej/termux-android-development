@@ -21,8 +21,7 @@ type JavaProfile struct {
 	IsDefault     bool     // True for default recommended profile
 }
 
-// JavaProfilesDocsURL is the documentation URL detailing architecture differences between combinations and solos.
-const JavaProfilesDocsURL = "https://tadev.vercel.app/docs/java-profiles"
+const JavaProfilesDocsURL = ""
 
 // AvailableJavaProfiles defines the supported Java profiles using exclusively official Termux stable packages.
 var AvailableJavaProfiles = []JavaProfile{

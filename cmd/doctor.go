@@ -19,19 +19,19 @@ func RunDoctor() error {
 		return err
 	}
 
-	fmt.Printf("%s%sSystem Diagnostic & Environment Health Check%s\n\n", ui.Bold, ui.Cyan, ui.Reset)
+	fmt.Printf("%s\n\n", ui.BrightPurple("◆ System Diagnostic & Environment Health Check"))
 
 	issues := 0
 
 	// 1. Device Class & Architecture
-	ui.Success(fmt.Sprintf("Device: %s%s%s", ui.Bold, cfg.DeviceClass, ui.Reset))
-	ui.Success(fmt.Sprintf("Architecture: %s%s%s", ui.Bold, cfg.Arch, ui.Reset))
-	ui.Success(fmt.Sprintf("Memory: %s%.1f GB physical RAM%s (Auto-tuned JVM args: %s%s%s)", ui.Bold, float64(cfg.TotalMemMB)/1024, ui.Reset, ui.Cyan, cfg.JvmArgs, ui.Reset))
-	ui.Success(fmt.Sprintf("Environment: Prefix %s (Package Manager: %s)", cfg.Prefix, cfg.PkgManager))
+	ui.Successf("Device: %s", ui.Purple(cfg.DeviceClass))
+	ui.Successf("Architecture: %s", ui.Purple(cfg.Arch))
+	ui.Successf("Memory: %.1f GB physical RAM (Auto-tuned JVM args: %s)", float64(cfg.TotalMemMB)/1024, ui.Purple(cfg.JvmArgs))
+	ui.Successf("Environment: Prefix %s (Package Manager: %s)", cfg.Prefix, cfg.PkgManager)
 
 	// 2. Configured Java Profile
 	prof := cfg.GetConfiguredJavaProfile()
-	ui.Success(fmt.Sprintf("Configured Java Profile: %s%s%s (%s)", ui.Bold, prof.ID, ui.Reset, prof.Title))
+	ui.Successf("Configured Java Profile: %s (%s)", ui.Purple(prof.ID), prof.Title)
 
 	// Check required packages for active profile
 	for _, pkg := range prof.Packages {

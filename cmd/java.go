@@ -48,13 +48,13 @@ func RunJavaCommand(args []string) error {
 func runJavaList(cfg *env.Config) error {
 	activeProfile := cfg.GetConfiguredJavaProfile()
 
-	fmt.Printf("%s%sConfigured Java Profile%s\n\n", ui.Bold, ui.Cyan, ui.Reset)
-	ui.Info(fmt.Sprintf("Active Profile ID: %s%s%s", ui.Bold+ui.Green, activeProfile.ID, ui.Reset))
+	fmt.Printf("%s\n\n", ui.BrightPurple("◆ Configured Java Profile"))
+	ui.Infof("Active Profile ID: %s", ui.Purple(activeProfile.ID))
 	ui.Info(fmt.Sprintf("Title:             %s", activeProfile.Title))
 	ui.Info(fmt.Sprintf("Host Directory:    %s", filepath.Join(cfg.JvmDir, activeProfile.HostJavaDir)))
 	ui.Info(fmt.Sprintf("Toolchain Paths:   %s", strings.Join(activeProfile.ToolchainDirs, ", ")))
 
-	fmt.Printf("\n%s%sInstalled OpenJDK Runtimes%s\n\n", ui.Bold, ui.Cyan, ui.Reset)
+	fmt.Printf("\n%s\n\n", ui.BrightPurple("◆ Installed OpenJDK Runtimes"))
 	installed := env.DetectInstalledJavaVersions(cfg)
 	if len(installed) == 0 {
 		ui.Warn(fmt.Sprintf("No OpenJDK installations detected in %s", cfg.JvmDir))
@@ -62,17 +62,17 @@ func runJavaList(cfg *env.Config) error {
 		for _, info := range installed {
 			activeTag := ""
 			if info.IsActive {
-				activeTag = fmt.Sprintf(" %s[ACTIVE IN PATH]%s", ui.Bold+ui.Green, ui.Reset)
+				activeTag = fmt.Sprintf(" %s", ui.GreenText("[ACTIVE IN PATH]"))
 			}
 			ui.Success(fmt.Sprintf("OpenJDK %d: %s (%s)%s", info.Major, info.VersionLine, info.Path, activeTag))
 		}
 	}
 
-	fmt.Printf("\n%s%sAvailable Profiles%s\n\n", ui.Bold, ui.Cyan, ui.Reset)
+	fmt.Printf("\n%s\n\n", ui.BrightPurple("◆ Available Profiles"))
 	for _, p := range env.AvailableJavaProfiles {
 		marker := "  "
 		if p.ID == activeProfile.ID {
-			marker = fmt.Sprintf("%s> %s", ui.Cyan+ui.Bold, ui.Reset)
+			marker = fmt.Sprintf("%s ", ui.Purple(ui.SymbolArrow))
 		}
 		ui.Info(fmt.Sprintf("%s%s", marker, p.Title))
 	}
@@ -119,7 +119,7 @@ func runJavaSwitch(cfg *env.Config, targetID string) error {
 
 	fmt.Println()
 	summary := []string{
-		fmt.Sprintf("Active Profile:   %s%s%s", ui.Green, targetProfile.ID, ui.Reset),
+		fmt.Sprintf("Active Profile:   %s", ui.GreenText(targetProfile.ID)),
 		fmt.Sprintf("Title:            %s", targetProfile.Title),
 		fmt.Sprintf("Host OpenJDK:     %s", filepath.Join(cfg.JvmDir, targetProfile.HostJavaDir)),
 		fmt.Sprintf("Toolchain Paths:  %s", strings.Join(targetProfile.ToolchainDirs, ", ")),
@@ -128,18 +128,17 @@ func runJavaSwitch(cfg *env.Config, targetID string) error {
 	ui.PrintBox("JAVA PROFILE UPDATED", summary)
 
 	if ui.IsTerminal() {
-		fmt.Printf("\n%sClearing console and restarting shell in 2 seconds...%s\n", ui.Cyan, ui.Reset)
+		fmt.Printf("\n%s\n", ui.Purple("Clearing console and restarting shell in 2 seconds..."))
 		time.Sleep(2 * time.Second)
 		return env.ClearAndRestartShell(cfg)
 	}
 
-	fmt.Printf("\n%sRestart your shell or run %s'%s'%s%s to apply environment variables.%s\n\n",
-		ui.Cyan, ui.White, env.GetShellReloadHint(cfg), ui.Reset, ui.Cyan, ui.Reset)
+	fmt.Printf("\nRestart your shell or run '%s' to apply environment variables.\n\n", ui.Purple(env.GetShellReloadHint(cfg)))
 	return nil
 }
 
 func runJavaTest(cfg *env.Config) error {
-	fmt.Printf("%s%sTesting All Installed OpenJDK Versions & Build Tool Compatibility%s\n\n", ui.Bold, ui.Cyan, ui.Reset)
+	fmt.Printf("%s\n\n", ui.BrightPurple("◆ Testing All Installed OpenJDK Versions & Build Tool Compatibility"))
 
 	installed := env.DetectInstalledJavaVersions(cfg)
 	if len(installed) == 0 {
@@ -148,7 +147,7 @@ func runJavaTest(cfg *env.Config) error {
 	}
 
 	for _, info := range installed {
-		fmt.Printf("%s--- OpenJDK %d (%s) ---%s\n", ui.Bold+ui.Cyan, info.Major, info.DirName, ui.Reset)
+		fmt.Printf("%s\n", ui.Purple(fmt.Sprintf("--- OpenJDK %d (%s) ---", info.Major, info.DirName)))
 
 		// 1. Runtime Version
 		binJava := filepath.Join(info.Path, "bin", "java")
